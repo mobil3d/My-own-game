@@ -1,13 +1,14 @@
 //add human to zombie when it touches vaccine 
 //sounds feedback(vaccine shot, music, soldier health decrease)
-//background picture
+//reset button image
+
 
 
 var soldier_img
 var soldier
 var edges
 var human_img
-var vaccine,vaccine_img,vaccineGroup
+var vaccine,vaccine_img,vaccineGroup,vaccineData
 var zombie_img1,zombie_img2,zombie, zombieBackG,zombieGroup
 var health = 5;
 var score = 0;
@@ -39,7 +40,12 @@ function setup() {
 	 vaccineGroup = new Group();
 	 zombieGroup = new Group();
 	 
+	 restart = createSprite(800,700);
+	 restart.addImage(restart_img);
+	 restart.scale = 0.5;
+	 restart.visible = false;
 
+	 vaccineData = [false,0];
 }
 
 
@@ -74,13 +80,11 @@ function draw() {
 		background(gameOver);
 
 		textSize(60);
-		fill("turquoise");
-		text("Your final score is "+score,550,300);
+		fill("white");
+		text("Health :"+health, 50,100);
+		text("Score :"+ score,50,150);
 
-
-		restart = createSprite(800,700);
-		restart.addImage(restart_img);
-		restart.scale = 0.5;
+		restart.visible = true;
 
 		soldier.destroy();
 		zombieGroup.destroyEach();
@@ -96,6 +100,7 @@ function draw() {
 
 
 function reset(){
+	restart.visible = false;
 	gameState = "play";
 	health = 5;
 	score = 0;
@@ -169,7 +174,7 @@ function spawnZombies(){
 
 
 function shooting(){
-	if(keyWentDown("space")){
+	if(keyWentDown("space") && vaccineData[0] === false){		
 		vaccine = createSprite(soldier.x, soldier.y);
 		vaccine.addImage(vaccine_img);
 		vaccine.scale = 0.3;
@@ -178,15 +183,26 @@ function shooting(){
 		vaccine.depth = 0;
 		vaccine.lifetime = 1000/5;
 		vaccineGroup.add(vaccine);
-	}		
+		vaccineData[0] = true;
+	}
+	//Adding a delay for vaccine shot
+	if(vaccineData[0]===true && vaccineData[1]<15){
+		vaccineData[1]++;
+
+	}else {
+		vaccineData[0] = false;
+		vaccineData[1] = 0;
+	}
 }
 
 
 function collision(){
-	if (zombieGroup.isTouching(soldier)) {
-		health = health-1;
+	for(var k = 0; k<zombieGroup.length; k++){	
+		if (zombieGroup.get(k).isTouching(soldier)) {
+			zombieGroup.get(k).destroy();
+			health = health-1;	
+		}
 	}
-
 	for (var i = 0; i<vaccineGroup.length; i++){		
 		for (var e = 0; e<zombieGroup.length;e++){
 			if(vaccineGroup.get(i).isTouching(zombieGroup.get(e))){
@@ -197,6 +213,5 @@ function collision(){
 				score = score+1;
 			}
 		}
-		
-	} 
+	}
 }
